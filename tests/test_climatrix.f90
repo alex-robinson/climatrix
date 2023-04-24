@@ -1,5 +1,7 @@
 program test_climatrix
 
+    use climatrix
+    
     implicit none
 
 
