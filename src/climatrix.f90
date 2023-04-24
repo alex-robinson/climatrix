@@ -11,6 +11,9 @@ module climatrix
         integer :: nx 
         integer :: ny 
         
+        real(wp) :: dx          ! [m] Grid resolution
+        real(wp) :: rad_max     ! [m] Maximum radius for neighborhood
+
     end type
 
     type climatrix_field
@@ -23,6 +26,10 @@ module climatrix
 
         type(climatrix_par_class) :: p 
 
+        ! Axis variables [geometry axis, climate axis] that define interpolation matrix
+        real(wp), allocatable :: x_geom(:)          ! [ng]
+        real(wp), allocatable :: x_clim(:)          ! [nc]
+
         ! All fields are for a given month, or can represent annual fields too
         !type(climatrix_field) :: t2m
         !type(climatrix_field) :: pr
@@ -32,6 +39,44 @@ module climatrix
 
 
 contains
+
+    subroutine climatrix_init(cax,filename,group)
+
+        implicit none
+
+        type(climatrix_class),  intent(INOUT) :: cax 
+        character(len=*), intent(IN) :: filename            ! Parameter filename
+        character(len=*), intent(IN) :: group               ! Parameter group name
+
+
+
+
+
+        return
+
+    end subroutine climatrix_init
+
+    subroutine climatrix_par_load(par,filename,group)
+
+        use nml 
+
+        implicit none
+
+        type(climatrix_param_class), intent(INOUT) :: par 
+        character(len=*), intent(IN) :: filename            ! Parameter filename
+        character(len=*), intent(IN) :: group               ! Parameter group name
+
+        call nml_read(filename,group,"ng",     par%ng)
+        call nml_read(filename,group,"nc",     par%nc)
+        call nml_read(filename,group,"nx",     par%nx)
+        call nml_read(filename,group,"ny",     par%ny)
+        
+        call nml_read(filename,group,"dx",     par%dx)
+        call nml_read(filename,group,"rad_max",par%rad_max)
+        
+        return
+        
+    end subroutine climatrix_par_load
 
 
     subroutine climatrix_field_alloc(fld,ng,nc,nx,ny)
