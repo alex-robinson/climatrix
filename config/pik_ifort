@@ -1,0 +1,11 @@
+FC  = ifort
+
+INC_NC  = -I${NETCDF_FORTRANROOT}/include
+LIB_NC  = -L${NETCDF_FORTRANROOT}/lib -lnetcdff -L${NETCDF_CROOT}/lib -lnetcdf
+
+FFLAGS  = -no-wrap-margin -module $(objdir) -L$(objdir) 
+LFLAGS  = -Wl,-zmuldefs $(LIB_NC) 
+
+DFLAGS_NODEBUG = -O2 -fp-model precise
+DFLAGS_DEBUG   = -C -traceback -ftrapuv -fpe0 -check all -fp-model precise
+DFLAGS_PROFILE = -O2 -fp-model precise -pg
