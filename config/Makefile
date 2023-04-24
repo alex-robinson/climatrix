@@ -3,8 +3,8 @@
 
 # PATH options
 srcdir   = src
-objdir   = librembo/include
-bindir   = librembo/bin
+objdir   = libclimatrix/include
+bindir   = libclimatrix/bin
 libdir   = libs
 
 # Command-line options at make call
@@ -28,28 +28,24 @@ endif
 
 ###############################################
 ##							
-## List of rembo rules and source files
+## List of rules and source files
 ##
 ###############################################
 
-include config/Makefile_rembo.mk
+include config/Makefile_files.mk
 
-# GLOBAL RULES ####
+# EXTRA RULES ####
 $(objdir)/nml.o : $(libdir)/nml.f90
 	$(FC) $(DFLAGS) $(FFLAGS) -c -o $@ $<
 	
 $(objdir)/ncio.o : $(libdir)/ncio.f90
 	$(FC) $(DFLAGS) $(FFLAGS) $(INC_NC) -c -o $@ $<
 
-$(objdir)/ncio_transpose.o : $(libdir)/ncio_transpose.f90 $(objdir)/ncio.o
-	$(FC) $(DFLAGS) $(FFLAGS) -c -o $@ $<
-
 $(objdir)/interp1D.o : $(libdir)/interp1D.f90
 	$(FC) $(DFLAGS) $(FFLAGS) -c -o $@ $<
 
-rembo_libs = 	$(objdir)/nml.o \
+extra_libs = 	$(objdir)/nml.o \
 				$(objdir)/ncio.o \
-				$(objdir)/ncio_transpose.o \
 				$(objdir)/interp1D.o
 
 ###############################################
@@ -61,18 +57,18 @@ rembo_libs = 	$(objdir)/nml.o \
 # MAIN PROGRAMS ####
 
 # Static library compilation
-rembo-static: $(rembo_libs) $(rembo_base)
-	ar rc $(objdir)/librembo.a $(rembo_libs) $(rembo_base)
-	ranlib $(objdir)/librembo.a
+climatrix-static: $(extra_libs) $(climatrix_base)
+	ar rc $(objdir)/libclimatrix.a $(extra_libs) $(climatrix_base)
+	ranlib $(objdir)/libclimatrix.a
 	@echo " "
-	@echo "    $(objdir)/librembo.a is ready."
+	@echo "    $(objdir)/libclimatrix.a is ready."
 	@echo " "
 
-rembo: rembo-static
-	$(FC) $(DFLAGS) $(FFLAGS) $(INC_REMBO) -o librembo/bin/test_rembo.x \
-		test_rembo.f90 $(LIB_REMBO) $(LFLAGS)
+test: climatrix-static
+	$(FC) $(DFLAGS) $(FFLAGS) $(INC_CLIMATRIX) -o libclimatrix/bin/test_climatrix.x \
+		tests/test_climatrix.f90 $(LIB_CLIMATRIX) $(LFLAGS)
 	@echo " "
-	@echo "    librembo/bin/test_rembo.x is ready."
+	@echo "    libclimatrix/bin/test_climatrix.x is ready."
 	@echo " "
 
 .PHONY : usage
@@ -80,7 +76,7 @@ usage:
 	@echo ""
 	@echo "    * USAGE * "
 	@echo ""
-	@echo " make rembo : compiles rembo.x"
+	@echo " make test  : compiles test program"
 	@echo " make clean : cleans object files"
 	@echo ""
 
