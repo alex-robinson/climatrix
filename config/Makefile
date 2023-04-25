@@ -54,6 +54,10 @@ extra_libs = 	$(objdir)/nml.o \
 ##
 ###############################################
 
+CLIMATRIXROOT = ${CURDIR}
+INC_CLIMATRIX = -I${CLIMATRIXROOT}/libclimatrix/include 
+LIB_CLIMATRIX = -L${CLIMATRIXROOT}/libclimatrix/include -lclimatrix
+
 # MAIN PROGRAMS ####
 
 # Static library compilation

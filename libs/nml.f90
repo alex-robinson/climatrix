@@ -511,7 +511,7 @@ contains
         character(len=500)  :: comment1 
         character(len=len(value))  :: val_repr
 
-        io_val = 6 
+        io_val = output_unit
         if (present(io)) io_val = io 
         val_repr = value
 
@@ -539,7 +539,7 @@ contains
         character(len=500) :: value_str  
 
         write(value_str,*) value 
-        if (VERBOSE) call nml_print_string(name,value_str,comment,io,no_quotes=.true.)
+        call nml_print_string(name,value_str,comment,io,no_quotes=.true.)
 
         return 
 
@@ -555,7 +555,7 @@ contains
         character(len=500) :: value_str  
 
         write(value_str,*) value 
-        if (VERBOSE) call nml_print_string(name,value_str,comment,io)
+        call nml_print_string(name,value_str,comment,io,no_quotes=.true.)
 
         return 
 
@@ -571,7 +571,7 @@ contains
         character(len=500) :: value_str  
 
         write(value_str,*) value 
-        if (VERBOSE) call nml_print_string(name,value_str,comment,io,no_quotes=.true.)
+        call nml_print_string(name,value_str,comment,io,no_quotes=.true.)
 
         return 
 
@@ -588,7 +588,7 @@ contains
 
         value_str = "F"
         if (value) value_str = "T" 
-        if (VERBOSE) call nml_print_string(name,value_str,comment,io,no_quotes=.true.)
+        call nml_print_string(name,value_str,comment,io,no_quotes=.true.)
 
         return 
 
@@ -611,7 +611,7 @@ contains
             write(value_str,*) trim(value_str)//" "//'"'//trim(value(q))//'"'
         end do 
 
-        if (VERBOSE) call nml_print_string(name,value_str,comment,io,no_quotes=.true.)
+        call nml_print_string(name,value_str,comment,io,no_quotes=.true.)
 
         return 
 
@@ -632,7 +632,7 @@ contains
             write(value_str,"(a,g12.3)") trim(value_str)//" ",value(q)
         end do 
 
-        if (VERBOSE) call nml_print_string(name,value_str,comment,io,no_quotes=.true.)
+        call nml_print_string(name,value_str,comment,io,no_quotes=.true.)
 
         return 
 
@@ -653,7 +653,7 @@ contains
             write(value_str,"(a,g12.3)") trim(value_str)//" ",value(q)
         end do 
 
-        if (VERBOSE) call nml_print_string(name,value_str,comment,io,no_quotes=.true.)
+        call nml_print_string(name,value_str,comment,io,no_quotes=.true.)
 
         return 
 
@@ -674,7 +674,7 @@ contains
             write(value_str,"(a,i12)") trim(value_str)//" ",value(q)
         end do 
 
-        if (VERBOSE) call nml_print_string(name,value_str,comment,io,no_quotes=.true.)
+        call nml_print_string(name,value_str,comment,io,no_quotes=.true.)
 
         return 
 
@@ -699,7 +699,7 @@ contains
             end if 
         end do 
 
-        if (VERBOSE) call nml_print_string(name,value_str,comment,io,no_quotes=.true.)
+        call nml_print_string(name,value_str,comment,io,no_quotes=.true.)
 
         return 
 
