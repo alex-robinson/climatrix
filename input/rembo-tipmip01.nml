@@ -1,53 +1,49 @@
-&sim00
-    path = input/rembo-tipmip01/xg100/0
-    xg   = 100.0
-    xc   = 0.0
-    file = rembo-smb.nc
+&sims100
+    xg       = 100.0
+    xc       = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
+    path     = input/rembo-tipmip01/xg100
+    fldrs    = 0, 1, 2, 3, 4, 5
+    file     = rembo-smb.nc
     zs_name  = "zs"
     smb_name = "smb"
 /
 
-&sim01
-    path = input/rembo-tipmip01/xg100/1
-    xg   = 100.0
-    xc   = 1.0
-    file = rembo-smb.nc
+&sims080
+    xg       = 80.0
+    xc       = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
+    path     = input/rembo-tipmip01/xg080
+    fldrs    = 0, 1, 2, 3, 4, 5
+    file     = rembo-smb.nc
     zs_name  = "zs"
     smb_name = "smb"
 /
 
-&sim02
-    path = input/rembo-tipmip01/xg100/2
-    xg   = 100.0
-    xc   = 2.0
-    file = rembo-smb.nc
+&sims050
+    xg       = 50.0
+    xc       = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
+    path     = input/rembo-tipmip01/xg050
+    fldrs    = 0, 1, 2, 3, 4, 5
+    file     = rembo-smb.nc
     zs_name  = "zs"
     smb_name = "smb"
 /
 
-&sim03
-    path = input/rembo-tipmip01/xg100/3
-    xg   = 100.0
-    xc   = 3.0
-    file = rembo-smb.nc
+&sims020
+    xg       = 20.0
+    xc       = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
+    path     = input/rembo-tipmip01/xg020
+    fldrs    = 0, 1, 2, 3, 4, 5
+    file     = rembo-smb.nc
     zs_name  = "zs"
     smb_name = "smb"
 /
 
-&sim04
-    path = input/rembo-tipmip01/xg100/4
-    xg   = 100.0
-    xc   = 4.0
-    file = rembo-smb.nc
-    zs_name  = "zs"
-    smb_name = "smb"
-/
-
-&sim05
-    path = input/rembo-tipmip01/xg100/5
-    xg   = 100.0
-    xc   = 5.0
-    file = rembo-smb.nc
+&sims000
+    xg       = 0.0
+    xc       = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
+    path     = input/rembo-tipmip01/xg000
+    fldrs    = 0, 1, 2, 3, 4, 5
+    file     = rembo-smb.nc
     zs_name  = "zs"
     smb_name = "smb"
 /
