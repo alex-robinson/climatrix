@@ -1,8 +1,8 @@
 module climatrix
 
     use, intrinsic :: iso_fortran_env, only : input_unit, output_unit, error_unit
-
     use climatrix_defs
+    use ncio 
 
     implicit none
 
@@ -100,7 +100,8 @@ contains
         character(len=256) :: file 
         character(len=56)  :: zs_name 
         character(len=56)  :: var_name 
-        
+        character(len=512) :: file_path 
+
         xc = MV
 
         call nml_read(filename,group,"xg",xg)
@@ -136,10 +137,32 @@ contains
             write(error_unit,*) "xg     = ", xg 
             stop 
         end if
-        
+
         ! === Load data for this slice [x_geom=xg,x_clim=xc] ===
 
+        ! Determine x_geom where data should be added
 
+        i = minloc(abs(cax%x_geom-x_geom),1)
+
+        if (abs(cax%x_geom(i)-x_geom) .gt. TOL) then
+            write(error_unit,*) "x_geom value does not match nearest cax%x_geom value."
+            write(error_unit,*) "x_geom = ", x_geom 
+            write(error_unit,*) "cax%x_geom(i), i = ", cax%x_geom(i), i 
+            stop 
+        end if
+
+        do j = 1, nc 
+
+            file_path = trim(path)//"/"//trim(fldrs(j))//"/"//trim(file)
+
+            call nc_read(trim(file_path),zs_name, cax%smb%z_srf(i,j,:,:),start=[1,1,1],count=[cax%p%nx,cax%p%ny,1])
+            call nc_read(trim(file_path),var_name,cax%smb%var(i,j,:,:),start=[1,1,1],count=[cax%p%nx,cax%p%ny,1])
+            
+            write(output_unit,*) "Loaded slice, i, j: ", i, j 
+            write(output_unit,*) "    z_srf: ", minval(cax%smb%z_srf(i,j,:,:)), maxval(cax%smb%z_srf(i,j,:,:))
+            write(output_unit,*) "      var: ", minval(cax%smb%var(i,j,:,:)),   maxval(cax%smb%var(i,j,:,:))
+            
+        end do 
 
         return
 

@@ -9,12 +9,14 @@ module climatrix_defs
     ! Choose the working precision of the library (sp,dp)
     integer,  parameter :: wp = sp
 
-    real(wp), parameter :: MV = -9999.0 
+    real(wp), parameter :: TOL = 1e-5
+    real(wp), parameter :: MV  = -9999.0 
     
     private
     public :: dp 
     public :: sp 
     public :: wp 
+    public :: TOL
     public :: MV 
-    
+
 end module climatrix_defs

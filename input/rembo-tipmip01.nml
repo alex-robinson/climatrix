@@ -3,7 +3,7 @@
     xc       = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
     path     = input/rembo-tipmip01/xg100
     fldrs    = 0, 1, 2, 3, 4, 5
-    file     = rembo-smb.nc
+    file     = rembo_smb.nc
     zs_name  = "zs"
     var_name = "smb"
 /
@@ -13,7 +13,7 @@
     xc       = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
     path     = input/rembo-tipmip01/xg080
     fldrs    = 0, 1, 2, 3, 4, 5
-    file     = rembo-smb.nc
+    file     = rembo_smb.nc
     zs_name  = "zs"
     var_name = "smb"
 /
@@ -23,7 +23,7 @@
     xc       = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
     path     = input/rembo-tipmip01/xg050
     fldrs    = 0, 1, 2, 3, 4, 5
-    file     = rembo-smb.nc
+    file     = rembo_smb.nc
     zs_name  = "zs"
     var_name = "smb"
 /
@@ -33,7 +33,7 @@
     xc       = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
     path     = input/rembo-tipmip01/xg020
     fldrs    = 0, 1, 2, 3, 4, 5
-    file     = rembo-smb.nc
+    file     = rembo_smb.nc
     zs_name  = "zs"
     var_name = "smb"
 /
@@ -43,7 +43,7 @@
     xc       = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
     path     = input/rembo-tipmip01/xg000
     fldrs    = 0, 1, 2, 3, 4, 5
-    file     = rembo-smb.nc
+    file     = rembo_smb.nc
     zs_name  = "zs"
     var_name = "smb"
 /
