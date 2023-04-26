@@ -13,6 +13,10 @@ program test_climatrix
 
     call climatrix_init(cax,"input/climatrix_greenland.nml","greenland")
 
+    
+
+
+
     write(*,*)
     write(*,*) " test_climatrix complete."
     write(*,*)
