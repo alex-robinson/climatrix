@@ -29,7 +29,11 @@ program test_climatrix
     call climatrix_load_field_slice(cax,par_slice_path,"sims020",x_geom=20.0_wp)
     call climatrix_load_field_slice(cax,par_slice_path,"sims000",x_geom=0.0_wp)
 
-
+    write(*,*)
+    write(*,*) "All input data loaded."
+    write(*,*) "    z_srf: ", minval(cax%smb%z_srf), maxval(cax%smb%z_srf)
+    write(*,*) "      smb: ", minval(cax%smb%var),   maxval(cax%smb%var)
+    
     write(*,*)
     write(*,*) " test_climatrix complete."
     write(*,*)

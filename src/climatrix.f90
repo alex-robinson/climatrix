@@ -66,8 +66,8 @@ contains
         allocate(cax%x_clim(cax%p%nc))
         allocate(cax%wt(cax%p%ng,cax%p%nc))
         
-        cax%x_geom = 0.0
-        cax%x_clim = 0.0
+        cax%x_geom = MV
+        cax%x_clim = MV
         cax%wt     = 0.0 
 
         ! === Initialize climatrix field variables === 
@@ -218,9 +218,9 @@ contains
         allocate(fld%z_srf(ng,nc,nx,ny))
         allocate(fld%var(ng,nc,nx,ny))
         
-        fld%mask  = 0.0 
-        fld%z_srf = 0.0 
-        fld%var   = 0.0 
+        fld%mask  = MV 
+        fld%z_srf = MV 
+        fld%var   = MV 
 
         return
 
