@@ -5,7 +5,7 @@
     fldrs    = 0, 1, 2, 3, 4, 5
     file     = rembo-smb.nc
     zs_name  = "zs"
-    smb_name = "smb"
+    var_name = "smb"
 /
 
 &sims080
@@ -15,7 +15,7 @@
     fldrs    = 0, 1, 2, 3, 4, 5
     file     = rembo-smb.nc
     zs_name  = "zs"
-    smb_name = "smb"
+    var_name = "smb"
 /
 
 &sims050
@@ -25,7 +25,7 @@
     fldrs    = 0, 1, 2, 3, 4, 5
     file     = rembo-smb.nc
     zs_name  = "zs"
-    smb_name = "smb"
+    var_name = "smb"
 /
 
 &sims020
@@ -35,7 +35,7 @@
     fldrs    = 0, 1, 2, 3, 4, 5
     file     = rembo-smb.nc
     zs_name  = "zs"
-    smb_name = "smb"
+    var_name = "smb"
 /
 
 &sims000
@@ -45,5 +45,5 @@
     fldrs    = 0, 1, 2, 3, 4, 5
     file     = rembo-smb.nc
     zs_name  = "zs"
-    smb_name = "smb"
+    var_name = "smb"
 /

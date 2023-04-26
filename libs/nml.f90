@@ -507,7 +507,7 @@ contains
         integer :: io_val 
         logical, intent(in), optional :: no_quotes
         logical :: no_quotes_loc
-        character(len=1000) :: line
+        character(len=5000) :: line
         character(len=500)  :: comment1 
         character(len=len(value))  :: val_repr
 
@@ -645,7 +645,7 @@ contains
         character(len=*) :: name 
         character(len=*), optional :: comment
         integer, optional :: io 
-        character(len=500) :: value_str  
+        character(len=5000) :: value_str  
         integer :: q 
 
         value_str = ""

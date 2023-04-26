@@ -1,5 +1,7 @@
 module climatrix
 
+    use, intrinsic :: iso_fortran_env, only : input_unit, output_unit, error_unit
+
     use climatrix_defs
 
     implicit none
@@ -72,10 +74,76 @@ contains
 
         cax%smb%name = "smb"
         call climatrix_field_alloc(cax%smb,cax%p%ng,cax%p%nc,cax%p%nx,cax%p%ny)
-        
+
         return
 
     end subroutine climatrix_init
+
+    subroutine climatrix_load_field_slice(cax,filename,group,x_geom)
+        ! Load a slice of a field variable
+
+        use nml 
+
+        implicit none
+
+        type(climatrix_class),  intent(INOUT) :: cax
+        character(len=*), intent(IN) :: filename            ! Parameter filename
+        character(len=*), intent(IN) :: group               ! Parameter group name
+        real(wp),         intent(IN) :: x_geom              ! Current slice x_geom value
+        
+        ! Local variables 
+        integer  :: i, j, nc
+        real(wp) :: xg
+        real(wp) :: xc(100)
+        character(len=512) :: path 
+        character(len=56)  :: fldrs(100)
+        character(len=256) :: file 
+        character(len=56)  :: zs_name 
+        character(len=56)  :: var_name 
+        
+        xc = MV
+
+        call nml_read(filename,group,"xg",xg)
+        call nml_read(filename,group,"xc",xc)
+        call nml_read(filename,group,"path",path)
+        call nml_read(filename,group,"fldrs",fldrs)
+        call nml_read(filename,group,"file",file)
+        call nml_read(filename,group,"zs_name",zs_name)
+        call nml_read(filename,group,"var_name",var_name)
+        
+        ! Determine how many x_clim values there are
+        nc = count(xc .ne. MV)
+
+        ! === Print summary === 
+
+        write(output_unit,*)
+        write(output_unit,*) "slice parameters: x_geom = ", x_geom 
+        write(output_unit,*)
+
+        call nml_print("xg",xg)
+        call nml_print("xc",xc(1:nc))
+        call nml_print("path",path)
+        call nml_print("fldrs",fldrs(1:nc))
+        call nml_print("file",file)
+        call nml_print("zs_name",zs_name)
+        call nml_print("var_name",var_name)
+        
+        write(output_unit,*)
+        
+        if (xg .ne. x_geom) then 
+            write(error_unit,*) "x_geom value does not match that of the slice parameters."
+            write(error_unit,*) "x_geom = ", x_geom 
+            write(error_unit,*) "xg     = ", xg 
+            stop 
+        end if
+        
+        ! === Load data for this slice [x_geom=xg,x_clim=xc] ===
+
+
+
+        return
+
+    end subroutine climatrix_load_field_slice
 
     subroutine climatrix_par_load(par,filename,group)
 
@@ -95,7 +163,7 @@ contains
         call nml_read(filename,group,"dx",     par%dx)
         call nml_read(filename,group,"rad_max",par%rad_max)
         
-        write(*,*) "climatrix parameters: ", trim(filename), " : ", trim(group)
+        write(output_unit,*) "climatrix parameters: ", trim(filename), " : ", trim(group)
         
         call nml_print("ng",     par%ng)
         call nml_print("nc",     par%nc)
@@ -108,7 +176,6 @@ contains
         return
         
     end subroutine climatrix_par_load
-
 
     subroutine climatrix_field_alloc(fld,ng,nc,nx,ny)
 
