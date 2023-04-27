@@ -45,12 +45,13 @@ module climatrix
 
 contains
 
-    subroutine climatrix_interp(var,z_srf,x_geom,x_clim,name,cax,x_geom_subset,x_clim_subset)
+    subroutine climatrix_interp(var,z_srf,mask,x_geom,x_clim,name,cax,x_geom_subset,x_clim_subset)
 
         implicit none
 
         real(wp), intent(OUT) :: var(:,:)           ! [nx,ny] Calculated field
         real(wp), intent(IN)  :: z_srf(:,:)         ! [nx,ny] Current surface topography
+        real(wp), intent(IN)  :: mask(:,:)          ! [nx,ny] Current mask (0: ice-free, 1: ice)
         real(wp), intent(IN)  :: x_geom             ! Current x_geom value
         real(wp), intent(IN)  :: x_clim             ! Current x_clim value
         character(len=*), intent(IN) :: name
@@ -149,6 +150,7 @@ contains
 
         ! Determine best estimate of variable for each index 
 
+        !call climinterp_elevation_analog(var,z_srf,mask,var_ref,z_srf_ref,mask_ref,dx,dist_max,dz)
 
         return
 

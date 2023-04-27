@@ -2,5 +2,6 @@
 Makefile
 libclimatrix
 input
+output
 .vscode
 

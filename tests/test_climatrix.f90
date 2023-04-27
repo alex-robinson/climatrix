@@ -1,5 +1,6 @@
 program test_climatrix
 
+    use ncio 
     use climatrix
 
     implicit none
@@ -54,8 +55,9 @@ program test_climatrix
 
     ! Load variable info
 
-    call climatrix_interp(smb,cax%smb%z_srf(inow,jnow,:,:),x_geom,x_clim,"smb",cax, &
-                                                    x_geom_subset=[0.0_wp,20.0_wp,50.0_wp,80.0_wp,100.0_wp])
+    call climatrix_interp(smb,cax%smb%z_srf(inow,jnow,:,:),cax%smb%mask(inow,jnow,:,:), &
+                            x_geom,x_clim,"smb",cax, &
+                            x_geom_subset=[0.0_wp,20.0_wp,50.0_wp,80.0_wp,100.0_wp])
 
 
     write(*,*)
@@ -64,6 +66,45 @@ program test_climatrix
 
 contains
 
+    subroutine climatrix_write_init(cax,filename,time_init,units)
 
+        implicit none 
+
+        type(climatrix_class), intent(IN) :: cax 
+        character(len=*),      intent(IN) :: filename
+        !real(wp),              intent(IN) :: xc(:)
+        !real(wp),              intent(IN) :: yc(:)
+        character(len=*),      intent(IN) :: units 
+        real(wp),              intent(IN) :: time_init
+        
+        ! Local variables 
+        character(len=16) :: xnm 
+        character(len=16) :: ynm 
+        character(len=16) :: grid_mapping_name
+
+        xnm = "xc"
+        ynm = "yc" 
+        
+        ! Create the empty netcdf file
+        call nc_create(filename)
+
+        ! Add grid axis variables to netcdf file
+        call nc_write_dim(filename,"x_geom",x=cax%x_geom,units="%")
+        call nc_write_dim(filename,"x_clim",x=cax%x_clim,units="%")
+        ! call nc_write_dim(filename,xnm,x=xc*1e-3,units="km")
+        ! call nc_write_dim(filename,ynm,x=yc*1e-3,units="km")
+        call nc_write_dim(filename,xnm,x=1.0_wp,dx=1.0_wp,nx=cax%p%nx,units="")
+        call nc_write_dim(filename,ynm,x=1.0_wp,dx=1.0_wp,nx=cax%p%ny,units="")
+
+        call nc_write_dim(filename,"time",x=time_init,dx=1.0_wp,nx=1,units=trim(units),unlimited=.TRUE.)
+
+        ! Static information
+        call nc_write(filename,"smb_var",  cax%smb%var,   dim1="x_geom",dim2="x_clim",dim3="xc",dim4="yc",long_name="Surface mass balance",units="m/yr")
+        call nc_write(filename,"smb_mask", cax%smb%mask,  dim1="x_geom",dim2="x_clim",dim3="xc",dim4="yc",long_name="Surface mask",units="")
+        call nc_write(filename,"smb_z_srf",cax%smb%z_srf, dim1="x_geom",dim2="x_clim",dim3="xc",dim4="yc",long_name="Surface elevation",units="m")
+        
+        return
+
+    end subroutine climatrix_write_init
 
 end program test_climatrix
