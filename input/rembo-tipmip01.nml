@@ -1,49 +1,59 @@
 &sims100
-    xg       = 100.0
-    xc       = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
-    path     = input/rembo-tipmip01/xg100
-    fldrs    = 0, 1, 2, 3, 4, 5
-    file     = rembo_smb.nc
-    zs_name  = "zs"
-    var_name = "smb"
+    xg        = 100.0
+    xc        = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
+    path      = input/rembo-tipmip01/xg100
+    fldrs     = 0, 1, 2, 3, 4, 5
+    file      = rembo_smb.nc
+    zs_name   = "zs"
+    mask_name = "mask"
+    var_name  = "smb"
+    mask_val  = 0
 /
 
 &sims080
-    xg       = 80.0
-    xc       = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
-    path     = input/rembo-tipmip01/xg080
-    fldrs    = 0, 1, 2, 3, 4, 5
-    file     = rembo_smb.nc
-    zs_name  = "zs"
-    var_name = "smb"
+    xg        = 80.0
+    xc        = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
+    path      = input/rembo-tipmip01/xg080
+    fldrs     = 0, 1, 2, 3, 4, 5
+    file      = rembo_smb.nc
+    zs_name   = "zs"
+    mask_name = "mask"
+    var_name  = "smb"
+    mask_val  = 0
 /
 
 &sims050
-    xg       = 50.0
-    xc       = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
-    path     = input/rembo-tipmip01/xg050
-    fldrs    = 0, 1, 2, 3, 4, 5
-    file     = rembo_smb.nc
-    zs_name  = "zs"
-    var_name = "smb"
+    xg        = 50.0
+    xc        = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
+    path      = input/rembo-tipmip01/xg050
+    fldrs     = 0, 1, 2, 3, 4, 5
+    file      = rembo_smb.nc
+    zs_name   = "zs"
+    mask_name = "mask"
+    var_name  = "smb"
+    mask_val  = 0
 /
 
 &sims020
-    xg       = 20.0
-    xc       = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
-    path     = input/rembo-tipmip01/xg020
-    fldrs    = 0, 1, 2, 3, 4, 5
-    file     = rembo_smb.nc
-    zs_name  = "zs"
-    var_name = "smb"
+    xg        = 20.0
+    xc        = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
+    path      = input/rembo-tipmip01/xg020
+    fldrs     = 0, 1, 2, 3, 4, 5
+    file      = rembo_smb.nc
+    zs_name   = "zs"
+    mask_name = "mask"
+    var_name  = "smb"
+    mask_val  = 0
 /
 
 &sims000
-    xg       = 0.0
-    xc       = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
-    path     = input/rembo-tipmip01/xg000
-    fldrs    = 0, 1, 2, 3, 4, 5
-    file     = rembo_smb.nc
-    zs_name  = "zs"
-    var_name = "smb"
+    xg        = 0.0
+    xc        = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0  
+    path      = input/rembo-tipmip01/xg000
+    fldrs     = 0, 1, 2, 3, 4, 5
+    file      = rembo_smb.nc
+    zs_name   = "zs"
+    mask_name = "mask"
+    var_name  = "smb"
+    mask_val  = 0
 /
