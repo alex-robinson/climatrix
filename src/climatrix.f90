@@ -15,8 +15,8 @@ module climatrix
         integer :: ny 
         
         real(wp) :: dx          ! [m] Grid resolution
-        real(wp) :: rad_max     ! [m] Maximum radius for neighborhood
-
+        real(wp) :: dist_max    ! [m] Maximum radius for neighborhood
+        real(wp) :: dz          ! [m] Vertical distance for bins
     end type
 
     type climatrix_field
@@ -67,6 +67,8 @@ contains
         real(wp) :: wt_geom, wt_clim
         type(climatrix_field) :: fld
         
+        real(wp), allocatable :: var_matrix(:,:,:,:)
+
         if (present(x_geom_subset)) then 
 
             ! Get indices of cax%x_geom that match the subset of interest
@@ -149,8 +151,16 @@ contains
 
 
         ! Determine best estimate of variable for each index 
+        allocate(var_matrix(cax%p%nx,cax%p%ny,ng,nc))
+        var_matrix = MV 
+        
+        i = i1 
+        j = j1 
+        call climinterp_elevation_analog(var_matrix(:,:,i,j),z_srf,mask, &
+                        fld%var(:,:,i,j),fld%z_srf(:,:,i,j),fld%mask(:,:,i,j), &
+                        cax%p%dx,cax%p%dist_max,cax%p%dz)
 
-        !call climinterp_elevation_analog(var,z_srf,mask,var_ref,z_srf_ref,mask_ref,dx,dist_max,dz)
+        var = var_matrix(:,:,i,j)
 
         return
 
@@ -306,8 +316,9 @@ contains
         call nml_read(filename,group,"nx",     par%nx)
         call nml_read(filename,group,"ny",     par%ny)
         
-        call nml_read(filename,group,"dx",     par%dx)
-        call nml_read(filename,group,"rad_max",par%rad_max)
+        call nml_read(filename,group,"dx",      par%dx)
+        call nml_read(filename,group,"dist_max",par%dist_max)
+        call nml_read(filename,group,"dz",      par%dz)
         
         write(output_unit,*) "climatrix parameters: ", trim(filename), " : ", trim(group)
         
@@ -316,8 +327,9 @@ contains
         call nml_print("nx",     par%nx)
         call nml_print("ny",     par%ny)
         
-        call nml_print("dx",     par%dx)
-        call nml_print("rad_max",par%rad_max)
+        call nml_print("dx",        par%dx)
+        call nml_print("dist_max",  par%dist_max)
+        call nml_print("dz",        par%dz)
         
         return
         
@@ -406,7 +418,7 @@ contains
         return
 
     end subroutine vec_in_vec
-    
+
     subroutine which(ind,x,stat)
         ! Analagous to R::which function
         ! Returns indices that match condition x==.TRUE.

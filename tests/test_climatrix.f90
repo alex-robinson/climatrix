@@ -54,7 +54,7 @@ program test_climatrix
     ! Perform interpolation to a given location (x_geom,x_clim)
 
     allocate(smb(cax%p%nx,cax%p%ny))
-
+    
     x_geom = 70.0 
     x_clim =  2.0 
     inow   = 4
@@ -67,6 +67,10 @@ program test_climatrix
                             x_geom_subset=[0.0_wp,20.0_wp,50.0_wp,80.0_wp,100.0_wp])
 
 
+    ! Write output
+    call nc_write(file_test,"smb",smb, dim1="xc",dim2="yc",long_name="Surface mass balance",units="mm/yr",missing_value=MV)
+    call nc_write(file_test,"smb_err",smb - cax%smb%var(:,:,inow,jnow), dim1="xc",dim2="yc",long_name="Surface mass balance error",units="mm/yr",missing_value=MV)
+    
     write(*,*)
     write(*,*) " test_climatrix complete."
     write(*,*)
@@ -106,7 +110,7 @@ contains
         call nc_write_dim(filename,"time",x=time_init,dx=1.0_wp,nx=1,units=trim(units),unlimited=.TRUE.)
 
         ! Static information
-        call nc_write(filename,"smb_var",  cax%smb%var,   dim1="xc",dim2="yc",dim3="x_geom",dim4="x_clim",long_name="Surface mass balance",units="m/yr")
+        call nc_write(filename,"smb_var",  cax%smb%var,   dim1="xc",dim2="yc",dim3="x_geom",dim4="x_clim",long_name="Surface mass balance",units="mm/yr")
         call nc_write(filename,"smb_mask", cax%smb%mask,  dim1="xc",dim2="yc",dim3="x_geom",dim4="x_clim",long_name="Surface mask",units="")
         call nc_write(filename,"smb_z_srf",cax%smb%z_srf, dim1="xc",dim2="yc",dim3="x_geom",dim4="x_clim",long_name="Surface elevation",units="m")
         

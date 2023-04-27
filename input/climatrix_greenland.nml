@@ -4,6 +4,7 @@
     nx = 106
     ny = 181
 
-    dx = 16e3
-    rad_max = 200e3
+    dx = 16e3           ! [m] Grid resolution
+    dist_max = 100e3    ! [m] Maximum neighborhood distance
+    dz = 100.0          ! [m] Vertical bin half-width
 /

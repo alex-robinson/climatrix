@@ -63,7 +63,8 @@ contains
                     ! Point is within elevation band and of the same surface type (ice, ice-free),
                     ! calculate distance. 
 
-                    dist = sqrt( (dx*(i1-i))**2 + (dx*(j1-j))**2 + eps**2)
+                    dist = sqrt( (dx*(i1-i))**2 + (dx*(j1-j))**2 + &
+                                    (z_now-z_srf_ref(i1,j1))**2 + eps**2 )
 
                     if (dist .le. dist_max) then
                         ! Point is within distance of interest, calculate weight
