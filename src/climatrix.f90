@@ -21,9 +21,9 @@ module climatrix
 
     type climatrix_field
         character(len=56) :: name
-        real(wp), allocatable :: z_srf(:,:,:,:)     ! [ng,nc,nx,ny]
-        real(wp), allocatable :: mask(:,:,:,:)      ! [ng,nc,nx,ny]
-        real(wp), allocatable :: var(:,:,:,:)       ! [ng,nc,nx,ny]
+        real(wp), allocatable :: z_srf(:,:,:,:)     ! [nx,ny,ng,nc]
+        real(wp), allocatable :: mask(:,:,:,:)      ! [nx,ny,ng,nc]
+        real(wp), allocatable :: var(:,:,:,:)       ! [nx,ny,ng,nc]
     end type
 
     type climatrix_class
@@ -156,48 +156,6 @@ contains
 
     end subroutine climatrix_interp
 
-    subroutine vec_in_vec(ii,x,x_subset)
-        
-        implicit none
-
-        integer, allocatable, intent(OUT) :: ii(:)
-        real(wp), intent(IN) :: x(:)
-        real(wp), intent(IN) :: x_subset(:)
-        
-        ! Local variables
-        integer :: i, j, n 
-        integer, allocatable :: ii_tmp(:)
-
-        allocate(ii_tmp(size(x)))
-
-        n = 0 
-        do i = 1, size(x)
-
-            do j = 1, size(x_subset)
-                if (abs(x(i)-x_subset(j)) .lt. TOL) then 
-                    ! Index found in subset add it to list 
-                    n = n+1
-                    ii_tmp(n) = i 
-                    exit
-                end if
-            end do
-        end do 
-
-        if (n .eq. 0) then 
-            write(error_unit,*) "vec_in_vec: no values found in subset."
-            write(error_unit,*) "x: ", x 
-            write(error_unit,*) "x_subset: ", x_subset 
-            stop 
-        else
-            if (allocated(ii)) deallocate(ii)
-            allocate(ii(n))
-            ii = ii_tmp(1:n)
-        end if 
-
-        return
-
-    end subroutine vec_in_vec
-
     subroutine climatrix_init(cax,filename,group)
 
         implicit none
@@ -222,7 +180,7 @@ contains
         ! === Initialize climatrix field variables === 
 
         cax%smb%name = "smb"
-        call climatrix_field_alloc(cax%smb,cax%p%ng,cax%p%nc,cax%p%nx,cax%p%ny)
+        call climatrix_field_alloc(cax%smb,cax%p%nx,cax%p%ny,cax%p%ng,cax%p%nc)
 
         return
 
@@ -314,18 +272,18 @@ contains
 
             file_path = trim(path)//"/"//trim(fldrs(j))//"/"//trim(file)
 
-            call nc_read(trim(file_path),zs_name,  cax%smb%z_srf(i,j,:,:),start=[1,1,1],count=[cax%p%nx,cax%p%ny,1])
-            call nc_read(trim(file_path),var_name, cax%smb%var(i,j,:,:),  start=[1,1,1],count=[cax%p%nx,cax%p%ny,1])
+            call nc_read(trim(file_path),zs_name,  cax%smb%z_srf(:,:,i,j),start=[1,1,1],count=[cax%p%nx,cax%p%ny,1])
+            call nc_read(trim(file_path),var_name, cax%smb%var(:,:,i,j),  start=[1,1,1],count=[cax%p%nx,cax%p%ny,1])
             call nc_read(trim(file_path),mask_name,mask_in,start=[1,1,1],count=[cax%p%nx,cax%p%ny,1])
             
             ! Get ice mask
-            cax%smb%mask(i,j,:,:) = 0.0
-            where( abs(cax%smb%mask(i,j,:,:)-mask_in) .lt. TOL) cax%smb%mask(i,j,:,:) = 1.0
+            cax%smb%mask(:,:,i,j) = 0.0
+            where( abs(cax%smb%mask(:,:,i,j)-mask_in) .lt. TOL) cax%smb%mask(:,:,i,j) = 1.0
 
             write(output_unit,*) "Loaded slice, i, j: ", i, j 
-            write(output_unit,*) "    z_srf: ", minval(cax%smb%z_srf(i,j,:,:)), maxval(cax%smb%z_srf(i,j,:,:))
-            write(output_unit,*) "    mask: ", minval(cax%smb%mask(i,j,:,:)), maxval(cax%smb%mask(i,j,:,:))
-            write(output_unit,*) "      var: ", minval(cax%smb%var(i,j,:,:)),   maxval(cax%smb%var(i,j,:,:))
+            write(output_unit,*) "    z_srf: ", minval(cax%smb%z_srf(:,:,i,j)), maxval(cax%smb%z_srf(:,:,i,j))
+            write(output_unit,*) "     mask: ", minval(cax%smb%mask(:,:,i,j)),  maxval(cax%smb%mask(:,:,i,j))
+            write(output_unit,*) "      var: ", minval(cax%smb%var(:,:,i,j)),   maxval(cax%smb%var(:,:,i,j))
             
         end do 
 
@@ -365,23 +323,23 @@ contains
         
     end subroutine climatrix_par_load
 
-    subroutine climatrix_field_alloc(fld,ng,nc,nx,ny)
+    subroutine climatrix_field_alloc(fld,nx,ny,ng,nc)
 
         implicit none
 
         type(climatrix_field), intent(INOUT) :: fld
-        integer, intent(IN) :: ng
-        integer, intent(IN) :: nc
         integer, intent(IN) :: nx
         integer, intent(IN) :: ny
+        integer, intent(IN) :: ng
+        integer, intent(IN) :: nc
         
         ! First ensure field is deallocated
         call climatrix_field_dealloc(fld)
 
         ! Allocate field variables
-        allocate(fld%z_srf(ng,nc,nx,ny))
-        allocate(fld%mask(ng,nc,nx,ny))
-        allocate(fld%var(ng,nc,nx,ny))
+        allocate(fld%z_srf(nx,ny,ng,nc))
+        allocate(fld%mask(nx,ny,ng,nc))
+        allocate(fld%var(nx,ny,ng,nc))
         
         fld%z_srf = MV 
         fld%mask  = MV 
@@ -405,6 +363,50 @@ contains
 
     end subroutine climatrix_field_dealloc
 
+
+
+    subroutine vec_in_vec(ii,x,x_subset)
+        
+        implicit none
+
+        integer, allocatable, intent(OUT) :: ii(:)
+        real(wp), intent(IN) :: x(:)
+        real(wp), intent(IN) :: x_subset(:)
+        
+        ! Local variables
+        integer :: i, j, n 
+        integer, allocatable :: ii_tmp(:)
+
+        allocate(ii_tmp(size(x)))
+
+        n = 0 
+        do i = 1, size(x)
+
+            do j = 1, size(x_subset)
+                if (abs(x(i)-x_subset(j)) .lt. TOL) then 
+                    ! Index found in subset add it to list 
+                    n = n+1
+                    ii_tmp(n) = i 
+                    exit
+                end if
+            end do
+        end do 
+
+        if (n .eq. 0) then 
+            write(error_unit,*) "vec_in_vec: no values found in subset."
+            write(error_unit,*) "x: ", x 
+            write(error_unit,*) "x_subset: ", x_subset 
+            stop 
+        else
+            if (allocated(ii)) deallocate(ii)
+            allocate(ii(n))
+            ii = ii_tmp(1:n)
+        end if 
+
+        return
+
+    end subroutine vec_in_vec
+    
     subroutine which(ind,x,stat)
         ! Analagous to R::which function
         ! Returns indices that match condition x==.TRUE.
