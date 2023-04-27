@@ -2,6 +2,7 @@ module climatrix
 
     use, intrinsic :: iso_fortran_env, only : input_unit, output_unit, error_unit
     use climatrix_defs
+    use climate_interpolation
     use ncio 
 
     implicit none
@@ -44,7 +45,7 @@ module climatrix
 
 contains
 
-    subroutine climatrix_interp(var,z_srf,x_geom,x_clim,name,cax)
+    subroutine climatrix_interp(var,z_srf,x_geom,x_clim,name,cax,x_geom_subset,x_clim_subset)
 
         implicit none
 
@@ -54,13 +55,44 @@ contains
         real(wp), intent(IN)  :: x_clim             ! Current x_clim value
         character(len=*), intent(IN) :: name
         type(climatrix_class), intent(IN) :: cax 
-
+        real(wp), intent(IN), optional :: x_geom_subset(:)
+        real(wp), intent(IN), optional :: x_clim_subset(:)
+        
         ! Local variables
-        integer  :: i, j
+        integer  :: i, j, ng, nc 
+        integer, allocatable :: ii(:)
+        integer, allocatable :: jj(:)
         integer  :: i0, i1, j0, j1 
         real(wp) :: wt_geom, wt_clim
         type(climatrix_field) :: fld
         
+        if (present(x_geom_subset)) then 
+
+            ! Get indices of cax%x_geom that match the subset of interest
+            call vec_in_vec(ii,cax%x_geom,x_geom_subset)
+
+        else 
+            allocate(ii(cax%p%ng))
+            do i = 1, cax%p%ng 
+                ii(i) = i 
+            end do
+        end if 
+
+        if (present(x_clim_subset)) then 
+
+            ! Get indices of cax%x_clim that match the subset of interest
+            call vec_in_vec(jj,cax%x_clim,x_clim_subset)
+
+        else 
+            allocate(jj(cax%p%nc))
+            do j = 1, cax%p%nc
+                jj(j) = j
+            end do
+        end if 
+        
+        ng = size(ii)
+        nc = size(jj) 
+
         ! Determine which field variable is being interpolated,
         ! extract field information from climatrix object
         select case(trim(name))
@@ -77,47 +109,92 @@ contains
 
         ! Determine relevant axis indices bounding (x_geom,x_clim)
 
-        if (x_geom .lt. minval(cax%x_geom)) then 
-            i0 = 1
-            i1 = 1 
-        else if (x_geom .gt. maxval(cax%x_geom)) then 
-            i0 = cax%p%ng 
-            i1 = cax%p%ng 
+        if (x_geom .lt. minval(cax%x_geom(ii))) then 
+            i0 = ii(1)
+            i1 = ii(1)
+        else if (x_geom .gt. maxval(cax%x_geom(ii))) then 
+            i0 = ii(ng)
+            i1 = ii(ng)
         else 
-            do i = 1, cax%p%ng 
-                if (cax%x_geom(i) .ge. x_geom) then 
-                    i0 = i-1
-                    i1 = i 
+            do i = 1, ng 
+                if (cax%x_geom(ii(i)) .ge. x_geom) then 
+                    i0 = ii(i-1)
+                    i1 = ii(i)
                     exit 
                 end if
             end do 
         end if
 
-        if (x_clim .lt. minval(cax%x_clim)) then 
-            j0 = 1
-            j1 = 1 
-        else if (x_clim .gt. maxval(cax%x_clim)) then 
-            j0 = cax%p%ng 
-            j1 = cax%p%ng 
+        if (x_clim .lt. minval(cax%x_clim(jj))) then 
+            j0 = jj(1)
+            j1 = jj(1)
+        else if (x_clim .gt. maxval(cax%x_clim(jj))) then 
+            j0 = jj(nc)
+            j1 = jj(nc)
         else 
-            do j = 1, cax%p%ng 
-                if (cax%x_clim(j) .ge. x_clim) then 
-                    j0 = j-1
-                    j1 = j 
+            do j = 1, nc
+                if (cax%x_clim(jj(j)) .ge. x_clim) then 
+                    j0 = jj(j-1)
+                    j1 = jj(j) 
                     exit 
                 end if
             end do 
         end if
 
+        write(output_unit,*)
+        write(output_unit,*) "Current interpolation characteristics:"
         write(output_unit,*) "x_geom: ", x_geom, cax%x_geom(i0), cax%x_geom(i1)
-        write(output_unit,*) "x_clim: ", x_clim, cax%x_clim(i0), cax%x_clim(i1)
+        write(output_unit,*) "x_clim: ", x_clim, cax%x_clim(j0), cax%x_clim(j1)
+
+
+        ! Determine best estimate of variable for each index 
 
 
         return
 
     end subroutine climatrix_interp
 
+    subroutine vec_in_vec(ii,x,x_subset)
+        
+        implicit none
 
+        integer, allocatable, intent(OUT) :: ii(:)
+        real(wp), intent(IN) :: x(:)
+        real(wp), intent(IN) :: x_subset(:)
+        
+        ! Local variables
+        integer :: i, j, n 
+        integer, allocatable :: ii_tmp(:)
+
+        allocate(ii_tmp(size(x)))
+
+        n = 0 
+        do i = 1, size(x)
+
+            do j = 1, size(x_subset)
+                if (abs(x(i)-x_subset(j)) .lt. TOL) then 
+                    ! Index found in subset add it to list 
+                    n = n+1
+                    ii_tmp(n) = i 
+                    exit
+                end if
+            end do
+        end do 
+
+        if (n .eq. 0) then 
+            write(error_unit,*) "vec_in_vec: no values found in subset."
+            write(error_unit,*) "x: ", x 
+            write(error_unit,*) "x_subset: ", x_subset 
+            stop 
+        else
+            if (allocated(ii)) deallocate(ii)
+            allocate(ii(n))
+            ii = ii_tmp(1:n)
+        end if 
+
+        return
+
+    end subroutine vec_in_vec
 
     subroutine climatrix_init(cax,filename,group)
 
@@ -177,7 +254,7 @@ contains
         real(wp), allocatable :: mask_in(:,:) 
 
         allocate(mask_in(cax%p%nx,cax%p%ny))
-        
+
         xc = MV
 
         call nml_read(filename,group,"xg",xg)
@@ -325,5 +402,47 @@ contains
         return
 
     end subroutine climatrix_field_dealloc
+
+    subroutine which(ind,x,stat)
+        ! Analagous to R::which function
+        ! Returns indices that match condition x==.TRUE.
+
+        implicit none 
+
+        integer, allocatable, intent(OUT) :: ind(:)
+        logical :: x(:)
+        integer, optional :: stat 
+
+        ! Local variables
+        integer, allocatable :: tmp(:)
+        integer :: n, i  
+
+        n = count(x)
+        allocate(tmp(n))
+        tmp = 0 
+
+        n = 0
+        do i = 1, size(x) 
+            if (x(i)) then 
+                n = n+1
+                tmp(n) = i 
+            end if
+        end do 
+
+        if (present(stat)) stat = n 
+
+        if (allocated(ind)) deallocate(ind)
+
+        if (n .eq. 0) then 
+            allocate(ind(1))
+            ind = -1 
+        else
+            allocate(ind(n))
+            ind = tmp(1:n)
+        end if 
+        
+        return 
+
+    end subroutine which
 
 end module climatrix
