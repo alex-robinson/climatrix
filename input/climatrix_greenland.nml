@@ -5,6 +5,6 @@
     ny = 181
 
     dx = 16e3           ! [m] Grid resolution
-    dist_max = 100e3    ! [m] Maximum neighborhood distance
-    dz = 100.0          ! [m] Vertical bin half-width
+    dist_max = 200e3    ! [m] Maximum neighborhood distance
+    dz = 200.0          ! [m] Vertical bin half-width
 /

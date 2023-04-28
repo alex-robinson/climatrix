@@ -14,8 +14,9 @@ program test_climatrix
     real(wp) :: x_geom
     real(wp) :: x_clim 
     real(wp), allocatable :: smb(:,:) 
+    real(wp), allocatable :: smb_tgt(:,:) 
+    real(wp), allocatable :: smb_err(:,:) 
 
-    
     ! ===========================================
     write(*,*) " "
     write(*,*) " Program: test_climatrix"
@@ -54,6 +55,8 @@ program test_climatrix
     ! Perform interpolation to a given location (x_geom,x_clim)
 
     allocate(smb(cax%p%nx,cax%p%ny))
+    allocate(smb_tgt(cax%p%nx,cax%p%ny))
+    allocate(smb_err(cax%p%nx,cax%p%ny))
     
     x_geom = 70.0 
     x_clim =  2.0 
@@ -66,10 +69,15 @@ program test_climatrix
                             x_geom,x_clim,"smb",cax, &
                             x_geom_subset=[0.0_wp,20.0_wp,50.0_wp,80.0_wp,100.0_wp])
 
+    smb_tgt = cax%smb%var(:,:,inow,jnow)
+    smb_err = MV 
+    where(smb .ne. MV) &
+        smb_err = smb - smb_tgt
 
     ! Write output
     call nc_write(file_test,"smb",smb, dim1="xc",dim2="yc",long_name="Surface mass balance",units="mm/yr",missing_value=MV)
-    call nc_write(file_test,"smb_err",smb - cax%smb%var(:,:,inow,jnow), dim1="xc",dim2="yc",long_name="Surface mass balance error",units="mm/yr",missing_value=MV)
+    call nc_write(file_test,"smb_tgt",smb_tgt, dim1="xc",dim2="yc",long_name="Surface mass balance target",units="mm/yr",missing_value=MV)
+    call nc_write(file_test,"smb_err",smb_err, dim1="xc",dim2="yc",long_name="Surface mass balance error",units="mm/yr",missing_value=MV)
     
     write(*,*)
     write(*,*) " test_climatrix complete."

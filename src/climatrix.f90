@@ -60,15 +60,17 @@ contains
         real(wp), intent(IN), optional :: x_clim_subset(:)
         
         ! Local variables
-        integer  :: i, j, ng, nc 
+        integer  :: i, j, l, m, ng, nc 
         integer, allocatable :: ii(:)
         integer, allocatable :: jj(:)
+        integer :: i_iter(4), j_iter(4)
         integer  :: i0, i1, j0, j1 
         real(wp) :: wt_geom, wt_clim
+        real(wp) :: var_lo, var_hi 
         type(climatrix_field) :: fld
         
         real(wp), allocatable :: var_matrix(:,:,:,:)
-
+        
         if (present(x_geom_subset)) then 
 
             ! Get indices of cax%x_geom that match the subset of interest
@@ -144,23 +146,50 @@ contains
             end do 
         end if
 
+        ! Get interpolation weights
+        wt_geom = (x_geom - cax%x_geom(i0)) / (cax%x_geom(i1) - cax%x_geom(i0))
+        wt_clim = (x_clim - cax%x_clim(j0)) / (cax%x_clim(j1) - cax%x_clim(j0))
+        
         write(output_unit,*)
         write(output_unit,*) "Current interpolation characteristics:"
-        write(output_unit,*) "x_geom: ", x_geom, cax%x_geom(i0), cax%x_geom(i1)
-        write(output_unit,*) "x_clim: ", x_clim, cax%x_clim(j0), cax%x_clim(j1)
-
+        write(output_unit,*) "x_geom: ", wt_geom, x_geom, cax%x_geom(i0), cax%x_geom(i1)
+        write(output_unit,*) "x_clim: ", wt_clim, x_clim, cax%x_clim(j0), cax%x_clim(j1)
 
         ! Determine best estimate of variable for each index 
         allocate(var_matrix(cax%p%nx,cax%p%ny,ng,nc))
         var_matrix = MV 
-        
-        i = i1 
-        j = j1 
-        call climinterp_elevation_analog(var_matrix(:,:,i,j),z_srf,mask, &
-                        fld%var(:,:,i,j),fld%z_srf(:,:,i,j),fld%mask(:,:,i,j), &
-                        cax%p%dx,cax%p%dist_max,cax%p%dz)
 
+if (.TRUE.) then
+        i = i1
+        j = j1
+        call climinterp_elevation_analog(var_matrix(:,:,i,j),z_srf,mask, &
+                            fld%var(:,:,i,j),fld%z_srf(:,:,i,j),fld%mask(:,:,i,j), &
+                            cax%p%dx,cax%p%dist_max,cax%p%dz)
         var = var_matrix(:,:,i,j)
+else
+        i_iter = [i0,i0,i1,i1]
+        j_iter = [j0,j1,j0,j1]
+        do l = 1, 4
+
+            i = i_iter(l)
+            j = j_iter(l) 
+
+            write(output_unit,*) "Interpolating: ", l, cax%x_geom(i), cax%x_clim(j)
+
+            call climinterp_elevation_analog(var_matrix(:,:,i,j),z_srf,mask, &
+                            fld%var(:,:,i,j),fld%z_srf(:,:,i,j),fld%mask(:,:,i,j), &
+                            cax%p%dx,cax%p%dist_max,cax%p%dz)
+
+        end do
+
+        do m = 1, cax%p%ny 
+        do l = 1, cax%p%nx 
+            var_lo = (1.0-wt_geom)*var_matrix(l,m,i0,j0) + (wt_geom)*var_matrix(l,m,i1,j0)
+            var_hi = (1.0-wt_geom)*var_matrix(l,m,i0,j1) + (wt_geom)*var_matrix(l,m,i1,j1)
+            var(l,m) = (1.0-wt_clim)*var_lo + (wt_clim)*var_hi 
+        end do 
+        end do 
+end if
 
         return
 
