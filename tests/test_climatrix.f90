@@ -75,6 +75,9 @@ program test_climatrix
         smb_err = smb - smb_tgt
 
     ! Write output
+    call nc_write(file_test,"z_srf",cax%smb%z_srf(:,:,inow,jnow), dim1="xc",dim2="yc",long_name="Surface elevation",units="m",missing_value=MV)
+    call nc_write(file_test,"mask", cax%smb%mask(:,:,inow,jnow),  dim1="xc",dim2="yc",long_name="Mask",units="",missing_value=MV)
+    
     call nc_write(file_test,"smb",smb, dim1="xc",dim2="yc",long_name="Surface mass balance",units="mm/yr",missing_value=MV)
     call nc_write(file_test,"smb_tgt",smb_tgt, dim1="xc",dim2="yc",long_name="Surface mass balance target",units="mm/yr",missing_value=MV)
     call nc_write(file_test,"smb_err",smb_err, dim1="xc",dim2="yc",long_name="Surface mass balance error",units="mm/yr",missing_value=MV)

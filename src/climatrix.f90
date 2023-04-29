@@ -69,6 +69,11 @@ contains
         real(wp) :: var_lo, var_hi 
         type(climatrix_field) :: fld
         
+        real(wp), allocatable :: var_geom_lo(:,:)
+        real(wp), allocatable :: var_geom_hi(:,:)
+        real(wp), allocatable :: var_geom_lo_now(:,:)
+        real(wp), allocatable :: var_geom_hi_now(:,:)
+
         real(wp), allocatable :: var_matrix(:,:,:,:)
         
         if (present(x_geom_subset)) then 
@@ -159,7 +164,7 @@ contains
         allocate(var_matrix(cax%p%nx,cax%p%ny,ng,nc))
         var_matrix = MV 
 
-if (.TRUE.) then
+if (.FALSE.) then
         i = i1
         j = j1
         call climinterp_elevation_analog(var_matrix(:,:,i,j),z_srf,mask, &
@@ -167,28 +172,41 @@ if (.TRUE.) then
                             cax%p%dx,cax%p%dist_max,cax%p%dz)
         var = var_matrix(:,:,i,j)
 else
-        i_iter = [i0,i0,i1,i1]
-        j_iter = [j0,j1,j0,j1]
-        do l = 1, 4
+        
+        allocate(var_geom_lo(cax%p%nx,cax%p%ny))
+        allocate(var_geom_hi(cax%p%nx,cax%p%ny))
+        allocate(var_geom_lo_now(cax%p%nx,cax%p%ny))
+        allocate(var_geom_hi_now(cax%p%nx,cax%p%ny))
+        
+        ! geom_lo, geom_hi 
+        var_geom_lo = (1.0-wt_clim)*fld%var(:,:,i0,j0) + wt_clim*fld%var(:,:,i0,j1)
+        var_geom_hi = (1.0-wt_clim)*fld%var(:,:,i1,j0) + wt_clim*fld%var(:,:,i1,j1)
 
-            i = i_iter(l)
-            j = j_iter(l) 
+        ! Now two arrays that are at the right climatic temperature, with different geometries
 
-            write(output_unit,*) "Interpolating: ", l, cax%x_geom(i), cax%x_clim(j)
+        ! geom_lo => geom_now
+        i = i0 
+        j = j0 
 
-            call climinterp_elevation_analog(var_matrix(:,:,i,j),z_srf,mask, &
-                            fld%var(:,:,i,j),fld%z_srf(:,:,i,j),fld%mask(:,:,i,j), &
-                            cax%p%dx,cax%p%dist_max,cax%p%dz)
+        write(output_unit,*) "Interpolating: ", cax%x_geom(i), cax%x_clim(j)
 
-        end do
+        call climinterp_elevation_analog(var_geom_lo_now,z_srf,mask, &
+                        var_geom_lo,fld%z_srf(:,:,i,j),fld%mask(:,:,i,j), &
+                        cax%p%dx,cax%p%dist_max,cax%p%dz)
 
-        do m = 1, cax%p%ny 
-        do l = 1, cax%p%nx 
-            var_lo = (1.0-wt_geom)*var_matrix(l,m,i0,j0) + (wt_geom)*var_matrix(l,m,i1,j0)
-            var_hi = (1.0-wt_geom)*var_matrix(l,m,i0,j1) + (wt_geom)*var_matrix(l,m,i1,j1)
-            var(l,m) = (1.0-wt_clim)*var_lo + (wt_clim)*var_hi 
-        end do 
-        end do 
+        ! geom_lo => geom_lo_now
+        i = i1
+        j = j0 
+
+        write(output_unit,*) "Interpolating: ", cax%x_geom(i), cax%x_clim(j)
+
+        call climinterp_elevation_analog(var_geom_hi_now,z_srf,mask, &
+                        var_geom_hi,fld%z_srf(:,:,i,j),fld%mask(:,:,i,j), &
+                        cax%p%dx,cax%p%dist_max,cax%p%dz)
+
+        ! Merge geom arrays
+        var = (1.0-wt_geom)*var_geom_lo_now + (wt_geom)*var_geom_hi_now 
+
 end if
 
         return
