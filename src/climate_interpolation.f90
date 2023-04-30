@@ -30,7 +30,7 @@ contains
 
         ! Local variables
         integer  :: i, j, i1, j1, nx, ny 
-        integer  :: dij 
+        integer  :: nij_dx  
         real(wp) :: z_now, z_min, z_max
         real(wp) :: dist, eps
         real(wp), allocatable :: wt(:,:)
@@ -42,7 +42,7 @@ contains
 
         eps = dx*1e-3
 
-        dij = ceiling(dist_max / dx)
+        nij_dx = ceiling(dist_max / dx)
 
         var = MV 
 
@@ -56,9 +56,9 @@ contains
 
             ! Get weighting of all points within z_now ± dz
             wt = 0.0 
-
-            do j1 = j-dij, j+dij
-            do i1 = i-dij, i+dij
+            
+            do j1 = j-nij_dx, j+nij_dx
+            do i1 = i-nij_dx, i+nij_dx
 
                 if (i1 .gt. 0 .and. i1 .lt. nx .and. j1 .gt. 0 .and. j1 .lt. ny) then 
                     ! Current neighbor is within domain boundaries 
@@ -84,7 +84,7 @@ contains
                     end if
 
                 end if 
-                
+
             end do 
             end do 
 

@@ -73,8 +73,6 @@ contains
         real(wp), allocatable :: var_geom_hi(:,:)
         real(wp), allocatable :: var_geom_lo_now(:,:)
         real(wp), allocatable :: var_geom_hi_now(:,:)
-
-        real(wp), allocatable :: var_matrix(:,:,:,:)
         
         if (present(x_geom_subset)) then 
 
@@ -160,19 +158,19 @@ contains
         write(output_unit,*) "x_geom: ", wt_geom, x_geom, cax%x_geom(i0), cax%x_geom(i1)
         write(output_unit,*) "x_clim: ", wt_clim, x_clim, cax%x_clim(j0), cax%x_clim(j1)
 
-        ! Determine best estimate of variable for each index 
-        allocate(var_matrix(cax%p%nx,cax%p%ny,ng,nc))
-        var_matrix = MV 
+        ! === Get new variable estimate =====
 
 if (.FALSE.) then
+    ! ajr: testing individual snapshot interpolation
         i = i1
         j = j1
-        call climinterp_elevation_analog(var_matrix(:,:,i,j),z_srf,mask, &
+        call climinterp_elevation_analog(var,z_srf,mask, &
                             fld%var(:,:,i,j),fld%z_srf(:,:,i,j),fld%mask(:,:,i,j), &
                             cax%p%dx,cax%p%dist_max,cax%p%dz)
-        var = var_matrix(:,:,i,j)
 else
         
+        ! Perform full interpolation over climate axis and geometry axis 
+
         allocate(var_geom_lo(cax%p%nx,cax%p%ny))
         allocate(var_geom_hi(cax%p%nx,cax%p%ny))
         allocate(var_geom_lo_now(cax%p%nx,cax%p%ny))
@@ -205,7 +203,33 @@ else
                         cax%p%dx,cax%p%dist_max,cax%p%dz)
 
         ! Merge geom arrays
-        var = (1.0-wt_geom)*var_geom_lo_now + (wt_geom)*var_geom_hi_now 
+        do j = 1, cax%p%ny 
+        do i = 1, cax%p%nx 
+
+            if (var_geom_lo_now(i,j) .ne. MV .and. var_geom_hi_now(i,j) .ne. MV) then
+                ! All values exist, get weighted average of geometry estimates
+
+                var(i,j) = (1.0-wt_geom)*var_geom_lo_now(i,j) + (wt_geom)*var_geom_hi_now(i,j) 
+
+            else if (var_geom_lo_now(i,j) .ne. MV) then 
+                ! Only low value exists, use it
+
+                var(i,j) = var_geom_lo_now(i,j)
+
+            else if (var_geom_hi_now(i,j) .ne. MV) then 
+                ! Only high value exists, use it
+
+                var(i,j) = var_geom_hi_now(i,j)
+
+            else 
+                ! All neighbors are missing, keep missing for now.
+
+                var(i,j) = MV 
+
+            end if 
+
+        end do 
+        end do 
 
 end if
 
