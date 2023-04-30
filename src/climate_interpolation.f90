@@ -30,6 +30,7 @@ contains
 
         ! Local variables
         integer  :: i, j, i1, j1, nx, ny 
+        integer  :: dij 
         real(wp) :: z_now, z_min, z_max
         real(wp) :: dist, eps
         real(wp), allocatable :: wt(:,:)
@@ -40,6 +41,8 @@ contains
         allocate(wt(nx,ny))
 
         eps = dx*1e-3
+
+        dij = ceiling(dist_max / dx)
 
         var = MV 
 
@@ -54,29 +57,34 @@ contains
             ! Get weighting of all points within z_now ± dz
             wt = 0.0 
 
-            do j1 = 1, ny 
-            do i1 = 1, nx 
+            do j1 = j-dij, j+dij
+            do i1 = i-dij, i+dij
 
-                if (z_srf_ref(i1,j1) .ge. z_min .and. &
-                    z_srf_ref(i1,j1) .le. z_max .and. &
-                    mask_ref(i1,j1)  .eq. mask(i,j) ) then 
-                    ! Point is within elevation band and of the same surface type (ice, ice-free),
-                    ! calculate distance. 
+                if (i1 .gt. 0 .and. i1 .lt. nx .and. j1 .gt. 0 .and. j1 .lt. ny) then 
+                    ! Current neighbor is within domain boundaries 
 
-                    dist = sqrt( (dx*(i1-i))**2 + (dx*(j1-j))**2 + &
-                                    (z_now-z_srf_ref(i1,j1))**2 + eps**2 )
+                    if (z_srf_ref(i1,j1) .ge. z_min .and. &
+                        z_srf_ref(i1,j1) .le. z_max .and. &
+                        mask_ref(i1,j1)  .eq. mask(i,j) ) then 
+                        ! Point is within elevation band and of the same surface type (ice, ice-free),
+                        ! calculate distance. 
 
-                    if (dist .le. dist_max) then
-                        ! Point is within distance of interest, calculate weight
+                        dist = sqrt( (dx*(i1-i))**2 + (dx*(j1-j))**2 + &
+                                        (z_now-z_srf_ref(i1,j1))**2 + eps**2 )
 
-                        ! Calculate weight as distance weighting in a radius, as a Modified Shepard's weighting
-                        ! https://en.wikipedia.org/wiki/Inverse_distance_weighting
-                        wt(i1,j1) = ((dist_max - dist)/(dist_max*dist))**2
+                        if (dist .le. dist_max) then
+                            ! Point is within distance of interest, calculate weight
 
-                    end if 
+                            ! Calculate weight as distance weighting in a radius, as a Modified Shepard's weighting
+                            ! https://en.wikipedia.org/wiki/Inverse_distance_weighting
+                            wt(i1,j1) = ((dist_max - dist)/(dist_max*dist))**2
 
-                end if
+                        end if 
 
+                    end if
+
+                end if 
+                
             end do 
             end do 
 
