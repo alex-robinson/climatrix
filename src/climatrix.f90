@@ -73,7 +73,7 @@ contains
         real(wp), allocatable :: var_geom_hi(:,:)
         real(wp), allocatable :: var_geom_lo_now(:,:)
         real(wp), allocatable :: var_geom_hi_now(:,:)
-        
+
         if (present(x_geom_subset)) then 
 
             ! Get indices of cax%x_geom that match the subset of interest
@@ -230,6 +230,18 @@ else
 
         end do 
         end do 
+
+        var(42:52,50:60) = MV 
+
+        ! Finally interpolate field with itself to ensure there are
+        ! no missing values
+
+        var_geom_lo_now = var 
+
+        call climinterp_elevation_analog(var,z_srf,mask, &
+                        var_geom_lo_now,z_srf,mask, &
+                        cax%p%dx,cax%p%dist_max,cax%p%dz, &
+                        mask_interp=var_geom_lo_now.eq.MV)
 
 end if
 
