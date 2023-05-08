@@ -63,9 +63,9 @@ program test_climatrix
     allocate(smb_err_pct(cax%p%nx,cax%p%ny))
     
     x_geom = 70.0 
-    x_clim =  2.0 
+    x_clim =  4.0 
     inow   = 4
-    jnow   = 3 
+    jnow   = 5
 
     ! Perform interpolation
 

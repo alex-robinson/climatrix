@@ -192,7 +192,7 @@ else
                         var_geom_lo,fld%z_srf(:,:,i,j),fld%mask(:,:,i,j), &
                         cax%p%dx,cax%p%dist_max,cax%p%dz)
 
-        ! geom_lo => geom_lo_now
+        ! geom_hi => geom_hi_now
         i = i1
         j = j0 
 
