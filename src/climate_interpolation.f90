@@ -7,6 +7,7 @@ module climate_interpolation
     ! var(i,j) = f(z_srf,var_ref,z_srf_ref)
     !
 
+    use, intrinsic :: iso_fortran_env, only : input_unit, output_unit, error_unit
     use climatrix_defs 
 
     implicit none
@@ -112,6 +113,169 @@ contains
         return
 
     end subroutine climinterp_elevation_analog
+
+    subroutine climinterp_gen_lookup(var,z_srf,var_ref,z_srf_ref,mask_interp_ref)
+
+        implicit none
+
+        real(wp), intent(OUT) :: var(:)         ! [nz] Variable estimated at target elevation levels
+        real(wp), intent(IN)  :: z_srf(:)       ! [nz] Target elevation levels
+        real(wp), intent(IN)  :: var_ref(:,:) 
+        real(wp), intent(IN)  :: z_srf_ref(:,:)
+        logical,  intent(IN)  :: mask_interp_ref(:,:)   ! Allowed source points to use in calculation of var
+
+        ! Local variables
+        integer  :: i, j, k, nx, ny, nz
+        real(wp) :: zmin, zmax
+        real(wp) :: wt_tot
+        real(wp), allocatable :: wt(:,:) 
+
+        ! Get total bin centers we will estimate
+        nx = size(var_ref,1)
+        ny = size(var_ref,2)
+        nz = size(z_srf,1)
+
+        ! Loop over bins and calculate var value
+
+        do k = 1, nz 
+
+            ! Get boundaries of bin
+            if (k .eq. 1) then 
+                zmin = z_srf(k) - 0.5*(z_srf(k+1)-z_srf(k))
+            else
+                zmin = 0.5*(z_srf(k-1)+z_srf(k))
+            end if
+
+            if (k .eq. nz) then 
+                zmax = z_srf(k) + 0.5*(z_srf(k)-z_srf(k-1))
+            else
+                zmax = 0.5*(z_srf(k)+z_srf(k+1))
+            end if
+
+            ! Get the mean value of all points in region of interest within vertical bin
+            
+            wt = 0.0
+
+            do j = 1, ny 
+            do i = 1, nx 
+
+                if (mask_interp_ref(i,j)) then 
+                    if (z_srf_ref(i,j) .gt. zmin .and. z_srf_ref(i,j) .le. zmax) then
+
+                        wt = 1.0
+
+                    end if
+                end if
+
+            end do 
+            end do
+
+            wt_tot = sum(wt)
+
+            if (wt_tot .gt. 0.0) then 
+                var(k) = sum(var_ref*wt) / wt_tot
+            else
+                var(k) = MV
+            end if
+
+        end do
+
+        return
+
+    end subroutine climinterp_gen_lookup
+
+    subroutine climinterp_interp_lookup(var,z_srf,var_ref,z_srf_ref)
+
+        implicit none
+
+        real(wp), intent(OUT) :: var
+        real(wp), intent(IN)  :: z_srf
+        real(wp), intent(IN)  :: var_ref(:)
+        real(wp), intent(IN)  :: z_srf_ref(:)
+
+        ! Local variables
+        integer  :: k, nz 
+        integer  :: k0, k1 
+        real(wp) :: wt 
+
+        nz = size(var_ref,1)
+
+        if (count(var_ref .eq. MV) .eq. nz) then
+             ! No interpolation values available, retain missing value
+
+             var = MV 
+        
+        else
+            ! Some interpolation values are available, proceed
+
+            ! Check extreme boundaries
+            do k = 1 , nz 
+                if (var_ref(k) .ne. MV) then
+                    k0 = k 
+                    exit
+                end if
+            end do 
+
+            do k = nz, 1, -1
+                if (var_ref(k) .ne. MV) then
+                    k1 = k 
+                    exit
+                end if
+            end do 
+            
+            if (z_srf .lt. z_srf_ref(k0)) then
+                ! Current elevation is too low, set minimum elevation variable value
+
+                var = var_ref(k0)
+            
+            else if (z_srf .gt. z_srf_ref(k1)) then 
+                ! Current elevation is too high, set maximum elevation variable value
+
+                var = var_ref(k1)
+
+            else if (k0 .eq. k1) then
+                ! Only one value avaiable, us it
+
+                var = var_ref(k1)
+            
+            else
+                ! Current elevation is within the lookup table, proceed to linear interpolation
+
+                ! First find upper index
+                do k = 1, nz
+                    if (var_ref(k) .ne. MV .and. z_srf_ref(k) .gt. z_srf) then
+                        k1 = k 
+                        exit
+                    end if
+                end do
+
+                ! Next find lower index
+                do k = k1, 1, -1
+                    if (var_ref(k) .ne. MV .and. z_srf_ref(k) .le. z_srf) then
+                        k0 = k 
+                        exit
+                    end if
+                end do
+
+                if (k0 .ge. k1) then
+                    write(error_unit,*) "climinterp_interp_lookup:: Error with bounding indices."
+                    write(error_unit,*) "k0, k1: ", k0, k1 
+                    stop 
+                end if
+
+                ! Perform linear interpolation to current elevation
+
+                wt = (z_srf-z_srf_ref(k0)) / (z_srf_ref(k1)-z_srf_ref(k0))
+
+                var = (1.0-wt)*z_srf_ref(k0) + wt*z_srf_ref(k1)
+
+            end if 
+
+        end if
+
+        return
+
+    end subroutine climinterp_interp_lookup
 
 end module climate_interpolation
 

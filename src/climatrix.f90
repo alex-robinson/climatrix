@@ -24,6 +24,10 @@ module climatrix
         real(wp), allocatable :: z_srf(:,:,:,:)     ! [nx,ny,ng,nc]
         real(wp), allocatable :: mask(:,:,:,:)      ! [nx,ny,ng,nc]
         real(wp), allocatable :: var(:,:,:,:)       ! [nx,ny,ng,nc]
+
+        real(wp), allocatable :: reg_mask(:,:)      ! [nx,ny]
+        real(wp), allocatable :: reg_z_srf(:)       ! [nz]
+        real(wp), allocatable :: reg_var(:,:)       ! [nr,nz]
     end type
 
     type climatrix_class
@@ -44,6 +48,59 @@ module climatrix
     public 
 
 contains
+
+    subroutine climatrix_tables_gen(cax,name)
+
+        implicit none
+
+        type(climatrix_class), intent(INOUT) :: cax
+        character(len=*), intent(IN) :: name 
+
+        ! Local variables
+        type(climatrix_field) :: fld
+
+        ! ==================================================================
+        ! Determine which field variable is being interpolated,
+        ! extract field information from climatrix object
+        
+        select case(trim(name))
+
+            case("smb")
+                fld = cax%smb 
+
+            case DEFAULT
+                write(error_unit,*) "climatrix_interp:: field name not recognized."
+                write(error_unit,*) "name = ", trim(name)
+                stop
+
+        end select
+
+        ! ==================================================================
+        ! Populate look up tables
+
+        ! To do 
+
+
+
+
+        ! ==================================================================
+        ! Finally populate the right field object at output
+
+        select case(trim(name))
+
+            case("smb")
+                cax%smb = fld
+
+            case DEFAULT
+                write(error_unit,*) "climatrix_interp:: field name not recognized."
+                write(error_unit,*) "name = ", trim(name)
+                stop
+
+        end select
+
+        return
+
+    end subroutine climatrix_tables_gen
 
     subroutine climatrix_interp(var,z_srf,mask,x_geom,x_clim,name,cax,x_geom_subset,x_clim_subset)
 
