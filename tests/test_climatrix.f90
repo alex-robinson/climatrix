@@ -13,10 +13,13 @@ program test_climatrix
     integer  :: i, j, inow, jnow
     real(wp) :: x_geom
     real(wp) :: x_clim 
+    real(wp), allocatable :: mask_basins(:,:)
     real(wp), allocatable :: smb(:,:) 
     real(wp), allocatable :: smb_tgt(:,:) 
     real(wp), allocatable :: smb_err(:,:) 
     real(wp), allocatable :: smb_err_pct(:,:) 
+
+    real(wp), allocatable :: basins(:) 
 
     real(8) :: cpu_start, cpu_end, cpu_dtime 
 
@@ -54,6 +57,18 @@ program test_climatrix
     
     ! Write climatrix data to file
     call climatrix_write_init(cax,file_test,time_init=0.0_wp,units="years")
+
+    ! Testing: load basin mask and determine unique basins
+    allocate(mask_basins(cax%p%nx,cax%p%ny))
+    call nc_read("input/GRL-16KM_BASINS-nasa.nc","basin_sub",mask_basins)
+
+    write(*,*) "Loaded basins: ", minval(mask_basins), maxval(mask_basins)
+    
+    call determine_basin_list(basins,mask_basins)
+
+    write(*,*) "Basin numbers: ", basins
+
+    stop 
 
     ! Perform interpolation to a given location (x_geom,x_clim)
 

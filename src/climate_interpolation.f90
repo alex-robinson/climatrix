@@ -12,6 +12,17 @@ module climate_interpolation
 
     implicit none
 
+    type lookup_table_class
+        real(wp), allocatable :: z_srf(:)
+        real(wp), allocatable :: var(:)
+    end type
+
+    private
+    public :: climinterp_elevation_analog
+    public :: determine_basin_list
+    public :: climinterp_gen_lookup_basins
+    !public :: climinterp_lookup
+
 contains
 
     subroutine climinterp_elevation_analog(var,z_srf,mask,var_ref,z_srf_ref,mask_ref,dx,dist_max,dz,mask_interp)
@@ -114,7 +125,86 @@ contains
 
     end subroutine climinterp_elevation_analog
 
-    subroutine climinterp_gen_lookup(var,z_srf,var_ref,z_srf_ref,mask_interp_ref)
+    subroutine determine_basin_list(basins,mask_basins)
+
+        implicit none
+
+        real(wp), allocatable, intent(OUT) :: basins(:) 
+        real(wp), intent(IN) :: mask_basins(:,:) 
+
+        ! Local variables
+        integer :: k, nb, npts
+        real(wp) :: bnow
+        real(wp), allocatable :: tmp(:,:)
+
+        integer, parameter :: nb_max = 1000
+        real(wp) :: basins_tmp(nb_max)
+
+        ! Assign tmp matrix to equal the basin mask
+        allocate(tmp(size(mask_basins,1),size(mask_basins,2)))
+        tmp = mask_basins
+
+        ! Reset count of total basins found to zero
+        nb = 0 
+
+        ! Iterate until maximum allowed basins, populating basin list
+        do k = 1, nb_max 
+
+            npts = count(tmp.ne.MV)
+
+            if (npts .gt. 0) then
+                ! Some basin numbers exist, find the smallest one, 
+                ! save it and remove it from mask field.
+                bnow = minval(tmp,mask=tmp.ne.MV)
+                nb = nb+1
+                basins_tmp(nb) = bnow
+                where(tmp .le. (bnow+TOL)) tmp = MV
+            else
+                exit
+            end if
+
+        end do
+
+        ! Finally allocate and save data to output list
+        if (allocated(basins)) deallocate(basins)
+        allocate(basins(nb))
+        basins = basins_tmp(1:nb)
+
+        return
+
+    end subroutine determine_basin_list
+
+    subroutine climinterp_gen_lookup_basins(tbl,basins,var_ref,z_srf_ref,mask_basins)
+        ! Generate a lookup table of values (var,z_srf) for each basin
+
+        implicit none
+
+        type(lookup_table_class), allocatable, intent(OUT) :: tbl(:)
+        real(wp), allocatable, intent(OUT) :: basins(:) 
+        real(wp), intent(IN) :: var_ref(:,:)
+        real(wp), intent(IN) :: z_srf_ref(:,:)
+        real(wp), intent(IN) :: mask_basins(:,:) 
+
+        ! Local variables
+        integer :: b, nb
+
+        
+        ! Determine total number of basins in domain
+        call determine_basin_list(basins,mask_basins)
+
+        ! Re-allocate tbl object to the total number of basins of interest
+        if (allocated(tbl)) deallocate(tbl)
+        allocate(tbl(nb))
+
+
+
+
+
+        return
+
+    end subroutine climinterp_gen_lookup_basins
+
+    subroutine climinterp_gen_lookup_region(var,z_srf,var_ref,z_srf_ref,mask_interp_ref)
 
         implicit none
 
@@ -182,9 +272,9 @@ contains
 
         return
 
-    end subroutine climinterp_gen_lookup
+    end subroutine climinterp_gen_lookup_region
 
-    subroutine climinterp_interp_lookup(var,z_srf,var_ref,z_srf_ref)
+    subroutine climinterp_lookup_pt(var,z_srf,var_ref,z_srf_ref)
 
         implicit none
 
@@ -258,7 +348,7 @@ contains
                 end do
 
                 if (k0 .ge. k1) then
-                    write(error_unit,*) "climinterp_interp_lookup:: Error with bounding indices."
+                    write(error_unit,*) "climinterp_lookup_pt:: Error with bounding indices."
                     write(error_unit,*) "k0, k1: ", k0, k1 
                     stop 
                 end if
@@ -275,7 +365,7 @@ contains
 
         return
 
-    end subroutine climinterp_interp_lookup
+    end subroutine climinterp_lookup_pt
 
 end module climate_interpolation
 
