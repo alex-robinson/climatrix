@@ -18,6 +18,7 @@ module climate_interpolation
     end type
 
     private
+    public :: lookup_table_class
     public :: climinterp_elevation_analog
     public :: determine_basin_list
     public :: climinterp_gen_lookup_basins
@@ -187,18 +188,28 @@ contains
 
         ! Local variables
         integer :: b, nb
-
+        logical, allocatable :: mask_now(:,:)
         
         ! Determine total number of basins in domain
         call determine_basin_list(basins,mask_basins)
 
+        ! Allocate local variables
+        allocate(mask_now(size(var_ref,1),size(var_ref,2)))
+        
         ! Re-allocate tbl object to the total number of basins of interest
         if (allocated(tbl)) deallocate(tbl)
         allocate(tbl(nb))
 
+        ! Loop over all basins and calculate lookup tables for each one
+        do b = 1, nb 
 
+            ! Determine mask for this region
+            mask_now = abs(mask_basins-basins(b)) .lt. TOL
 
+            ! Generate lookup table for this region
+            call climinterp_gen_lookup_region(tbl(b)%var,tbl(b)%z_srf,var_ref,z_srf_ref,mask_now)
 
+        end do
 
         return
 
